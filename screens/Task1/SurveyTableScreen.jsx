@@ -51,14 +51,13 @@ export default function SurveyTableScreen() {
 
     var filteredData = await MainContoller.searchUsers(surveyData, text)
 
-    let paginatedData = [], startLimit = start, endLimit = limit;
+    let paginatedData = [];
 
     if(text === ''){
-      setStart(startLimit)
-      setLimit(endLimit)
       paginatedData = filteredData.slice(0, 5).map((field) => Object.values(field));
     } else {
-      if(increase){
+      let startLimit = start, endLimit = limit;
+      if(increase && filteredData.length > 0){
         startLimit = startLimit + 5,
         endLimit = endLimit + 5;
       }
