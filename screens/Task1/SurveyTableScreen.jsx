@@ -10,6 +10,7 @@ export default function SurveyTableScreen() {
   const [surveyData, setSurveyData] = useState([]);
   const [paginatedData, setPaginatedData] = useState([]);
   const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(0);
   const [headers, setHeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(5);
@@ -26,44 +27,62 @@ export default function SurveyTableScreen() {
       setPaginatedData([...paginatedData]);
       setHeaders([...Object.keys(surveyData[0])]);
       setLoading(false);
+      setEnd(surveyData.length)
     }
   };
 
-  const handlePaginate = () => {
-    let startIncreased = start + 5,
-      limitIncreased = limit + 5;
+  const handlePaginate = (direction) => {
+    let startLimit = start, endLimit = limit;
+    if(direction == 'NEXT'){
+      startLimit = startLimit + 5;
+      endLimit = endLimit + 5;
+    }else {
+      if(startLimit >= 5 && endLimit >= 10){
+        startLimit = startLimit - 5;
+        endLimit = endLimit - 5;
+      }
+    }
 
     let paginatedData = [];
 
     if(searchString === ''){
-      paginatedData = surveyData.slice(startIncreased, limitIncreased).map((field) => Object.values(field));
+      paginatedData = surveyData.slice(startLimit, endLimit).map((field) => Object.values(field));
       setPaginatedData([...paginatedData]);
-      setStart(startIncreased);
-      setLimit(limitIncreased);
+      setStart(startLimit);
+      setLimit(endLimit);
+      setEnd(surveyData.length)
     }else {
-      handleSearchByName(searchString, true)
+      handleSearchByName(searchString, true, direction)
     }
+
   };
 
-  const handleSearchByName = async(text, increase = false) => {
+  const handleSearchByName = async(text, increase = false, direction) => {
 
     setSearchString(text);
 
     var filteredData = await MainContoller.searchUsers(surveyData, text)
 
-    let paginatedData = [];
+    let paginatedData = [], startLimit = start, endLimit = limit;
 
     if(text === ''){
       paginatedData = filteredData.slice(0, 5).map((field) => Object.values(field));
     } else {
-      let startLimit = start, endLimit = limit;
-      if(increase && filteredData.length > 0){
+      if(increase && direction === 'NEXT'){
         startLimit = startLimit + 5,
         endLimit = endLimit + 5;
+      }else {
+        startLimit = 0;
+        endLimit = 5;
       }
       paginatedData = filteredData.slice(startLimit, endLimit).map((field) => Object.values(field));
     }
-    setPaginatedData([...paginatedData])
+    if(paginatedData.length > 0){
+      setPaginatedData([...paginatedData])
+      setStart(startLimit)
+      setLimit(endLimit)
+    }
+    setEnd(filteredData.length)
   };
 
   return (
@@ -78,7 +97,7 @@ export default function SurveyTableScreen() {
             placeholder={"Search by name..."}
           />
           <Table
-            buttonLabel={"Paginate me!"}
+            limits={{start, end}}
             tableHeaders={headers}
             tableData={paginatedData}
             widthArr={widthArr}

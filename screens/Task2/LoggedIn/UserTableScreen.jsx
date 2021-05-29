@@ -14,6 +14,7 @@ export default function SurveyTableScreen() {
   const [userData, setUserData] = useState([]);
   const [paginatedData, setPaginatedData] = useState([]);
   const [start, setStart] = useState(0);
+  const [end, setEnd] = useState(0);
   const [headers, setHeaders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [limit, setLimit] = useState(5);
@@ -50,22 +51,36 @@ export default function SurveyTableScreen() {
       setPaginatedData([...parsedUserData]);
       setHeaders([...headersArr]);
       setLoading(false);
+      setEnd(users.length)
     }
   };
 
-  const handlePaginate = async() => {
-    let startIncreased = start + 5,
-      limitIncreased = limit + 5;
+  const handlePaginate = async(direction) => {
+    let filteredData = userData, startLimit = start, endLimit = limit;
+    if(direction == 'NEXT'){
+      startLimit = startLimit + 5;
+      endLimit = endLimit + 5;
+    }else {
+      if(startLimit >= 5 && endLimit >= 10){
+        startLimit = startLimit - 5;
+        endLimit = endLimit - 5;
+      }
+    }
+
+    if(filter.gender !== ''){
+      filteredData = await MainContoller.filterByGender(filteredData, filter.gender)
+    }
 
     let paginatedData = [];
 
     if(searchString === ''){
-      paginatedData = await MainContoller.parseUsers(userData, startIncreased, limitIncreased)
+      paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
       setPaginatedData([...paginatedData]);
-      setStart(startIncreased);
-      setLimit(limitIncreased);
+      setStart(startLimit);
+      setLimit(endLimit);
+      setEnd(filteredData.length)
     }else {
-      handleSearchByName(searchString, true)
+      handleSearchByName(searchString, true, direction)
     }
   };
 
@@ -73,12 +88,13 @@ export default function SurveyTableScreen() {
     setDisplayModal(!displayModal)
   }
 
-  const handleSearchByName = async(text, increase = false) => {
+  const handleSearchByName = async(text, increase = false, direction) => {
 
     setSearchString(text);
 
     var filteredData = await MainContoller.searchUsers(userData, text)
-    let paginatedData = [];
+
+    let paginatedData = [], startLimit = start, endLimit = limit;
 
     if(filter.gender !== ''){
       filteredData = await MainContoller.filterByGender(filteredData, filter.gender)
@@ -87,14 +103,19 @@ export default function SurveyTableScreen() {
     if(text === ''){
       paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
     } else {
-      let startLimit = start, endLimit = limit;
-      if(increase && filteredData.length > 5){
+      if(increase && direction === 'NEXT'){
         startLimit = startLimit + 5,
         endLimit = endLimit + 5;
+      }else {
+        startLimit = 0;
+        endLimit = 5;
       }
       paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
     }
-    setPaginatedData([...paginatedData])
+      setPaginatedData([...paginatedData])
+      setStart(startLimit)
+      setLimit(endLimit)
+      setEnd(filteredData.length)
   };
 
   const handleFilterByGender = async () => {
@@ -127,7 +148,7 @@ export default function SurveyTableScreen() {
             placeholder={"Search by name..."}
           />
           <Table
-            buttonLabel={"Paginate me!"}
+            limits={{start, end}}
             tableHeaders={headers}
             tableData={paginatedData}
             widthArr={widthArr}
