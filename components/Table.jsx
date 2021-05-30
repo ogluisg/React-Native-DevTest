@@ -1,12 +1,11 @@
 import React from "react";
-import { ScrollView, StyleSheet, View} from "react-native";
+import { ScrollView, StyleSheet, View, Platform} from "react-native";
 import { Row, Rows, Table } from "react-native-table-component";
 import Button from "./Button";
 
 export default ({buttonOnPress, tableHeaders, tableData, widthArr, limits : { start = 0, end }}) => {
   return (
     <ScrollView>
-
       <View style={styles.buttonContainer}>
       <Button
         label={'BACK'}
@@ -21,8 +20,8 @@ export default ({buttonOnPress, tableHeaders, tableData, widthArr, limits : { st
         onPress={() => buttonOnPress('NEXT')}
       />
       </View>
-      <ScrollView horizontal={true}>
-        <Table borderStyle={styles.tableContainer}>
+      <ScrollView horizontal={true} contentContainerStyle={[Platform.OS === 'web' ? styles.tableContainerWeb : {} ]}>
+        <Table borderStyle={styles.tableBorderStyle}>
           <Row
             data={tableHeaders}
             widthArr={widthArr}
@@ -41,14 +40,8 @@ export default ({buttonOnPress, tableHeaders, tableData, widthArr, limits : { st
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 18,
-    paddingTop: 35,
-    backgroundColor: "#ffffff",
-  },
   HeadStyle: {
-    height: 50,
+    height: 80,
     alignContent: "center",
     backgroundColor: "lightblue",
   },
@@ -62,9 +55,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     width: 200,
   },
-  tableContainer: {
+  tableBorderStyle: {
     borderWidth: 1, 
-    borderColor: "#ffa1d2" 
+    backgroundColor:'blue',
+    borderColor: "#ffa1d2" ,
+    alignSelf: 'stretch',
+
   },
   buttonContainer:{
     flexDirection:'row',
@@ -72,6 +68,12 @@ const styles = StyleSheet.create({
   },
   inactiveButton: {
     backgroundColor:'grey'
+  },
+  tableContainerWeb:{
+    width: '100%',
+    justifyContent:'center', 
+    alignContent:'center', 
+    alignItems:'center'
   }
 });
 

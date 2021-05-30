@@ -2,8 +2,9 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SearchBar, Table } from "../../components";
 import MainContoller from "../../controllers/MainContoller";
+import helper from '../../helpers/helper';
 
-const widthArr = [100, 100, 100, 100, 100, 100, 250];
+const widthArr = [200, 200, 200, 200, 200, 200, 250];
 
 export default function SurveyTableScreen() {
   const [searchString, setSearchString] = useState("");
@@ -31,22 +32,12 @@ export default function SurveyTableScreen() {
     }
   };
 
-  const handlePaginate = (direction) => {
-    let startLimit = start, endLimit = limit;
-    if(direction == 'NEXT'){
-      startLimit = startLimit + 5;
-      endLimit = endLimit + 5;
-    }else {
-      if(startLimit >= 5 && endLimit >= 10){
-        startLimit = startLimit - 5;
-        endLimit = endLimit - 5;
-      }
-    }
+  const handlePaginate = async (direction) => {
 
-    let paginatedData = [];
+    let { startLimit, endLimit } = await helper.getPaginateValues(start, limit, direction)
 
     if(searchString === ''){
-      paginatedData = surveyData.slice(startLimit, endLimit).map((field) => Object.values(field));
+      let paginatedData = surveyData.slice(startLimit, endLimit).map((field) => Object.values(field));
       setPaginatedData([...paginatedData]);
       setStart(startLimit);
       setLimit(endLimit);
@@ -54,29 +45,15 @@ export default function SurveyTableScreen() {
     }else {
       handleSearchByName(searchString, true, direction)
     }
-
   };
 
   const handleSearchByName = async(text, increase = false, direction) => {
-
     setSearchString(text);
 
-    var filteredData = await MainContoller.searchUsers(surveyData, text)
+    let filteredData = await MainContoller.searchUsers(surveyData, text)
 
-    let paginatedData = [], startLimit = start, endLimit = limit;
+    let { paginatedData, startLimit, endLimit } = await helper.getPaginatedDataAndValues(text, filteredData, increase, direction, start, limit)
 
-    if(text === ''){
-      paginatedData = filteredData.slice(0, 5).map((field) => Object.values(field));
-    } else {
-      if(increase && direction === 'NEXT'){
-        startLimit = startLimit + 5,
-        endLimit = endLimit + 5;
-      }else {
-        startLimit = 0;
-        endLimit = 5;
-      }
-      paginatedData = filteredData.slice(startLimit, endLimit).map((field) => Object.values(field));
-    }
     if(paginatedData.length > 0){
       setPaginatedData([...paginatedData])
       setStart(startLimit)

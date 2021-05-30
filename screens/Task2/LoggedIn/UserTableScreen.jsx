@@ -4,6 +4,7 @@ import Modal from 'react-native-modalbox';
 import { Button, SearchBar, Table } from "../../../components";
 import authContext from '../../../contexts/authContext';
 import MainContoller from "../../../controllers/MainContoller";
+import helper from '../../../helpers/helper';
 
 const widthArr = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100];
 
@@ -56,25 +57,16 @@ export default function SurveyTableScreen() {
   };
 
   const handlePaginate = async(direction) => {
-    let filteredData = userData, startLimit = start, endLimit = limit;
-    if(direction == 'NEXT'){
-      startLimit = startLimit + 5;
-      endLimit = endLimit + 5;
-    }else {
-      if(startLimit >= 5 && endLimit >= 10){
-        startLimit = startLimit - 5;
-        endLimit = endLimit - 5;
-      }
-    }
+    let filteredData = userData;
+    
+    let { startLimit, endLimit } = await helper.getPaginateValues(start, limit, direction)
 
     if(filter.gender !== ''){
       filteredData = await MainContoller.filterByGender(filteredData, filter.gender)
     }
 
-    let paginatedData = [];
-
     if(searchString === ''){
-      paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
+      let paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
       setPaginatedData([...paginatedData]);
       setStart(startLimit);
       setLimit(endLimit);
@@ -94,28 +86,16 @@ export default function SurveyTableScreen() {
 
     var filteredData = await MainContoller.searchUsers(userData, text)
 
-    let paginatedData = [], startLimit = start, endLimit = limit;
-
     if(filter.gender !== ''){
       filteredData = await MainContoller.filterByGender(filteredData, filter.gender)
     }
 
-    if(text === ''){
-      paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
-    } else {
-      if(increase && direction === 'NEXT'){
-        startLimit = startLimit + 5,
-        endLimit = endLimit + 5;
-      }else {
-        startLimit = 0;
-        endLimit = 5;
-      }
-      paginatedData = await MainContoller.parseUsers(filteredData, startLimit, endLimit)
-    }
-      setPaginatedData([...paginatedData])
-      setStart(startLimit)
-      setLimit(endLimit)
-      setEnd(filteredData.length)
+    let { paginatedData, startLimit, endLimit } = await helper.getPaginatedDataAndValues(text, filteredData, increase, direction, start, limit, true)
+
+    setPaginatedData([...paginatedData])
+    setStart(startLimit)
+    setLimit(endLimit)
+    setEnd(filteredData.length)
   };
 
   const handleFilterByGender = async () => {

@@ -1,5 +1,5 @@
 import { useNavigation } from "@react-navigation/core";
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { RoundButton, TextInput } from "../../../components";
 import authContext from "../../../contexts/authContext";
@@ -9,7 +9,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { setToken } = useContext(authContext);
-  const navigation = useNavigation()
+  const navigation = useNavigation();
 
   const fields = [
     {
@@ -30,9 +30,11 @@ export default function Login() {
     const token = await MainContoller.login(email, password);
     if (token) {
       setToken(token);
-      navigation.navigate('UserTable')
-    }else {
-      alert('Incorrect login credentials...')
+      setEmail("");
+      setPassword("");
+      navigation.navigate("UserTable");
+    } else {
+      alert("Incorrect login credentials...");
     }
   };
 
@@ -56,7 +58,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     alignItems: "center",
-    paddingVertical: '50%'
+    paddingVertical: "25%",
   },
   textinput: {
     marginVertical: 20,

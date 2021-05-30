@@ -2,8 +2,9 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import React, { useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
-import ModalDropdown from "react-native-modal-dropdown";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Dropdown } from "sharingan-rn-modal-dropdown";
+import { Button } from "../components";
 import AuthContext from "../contexts/authContext";
 import SurveyTableScreen from "../screens/Task1/SurveyTableScreen";
 import UserTableScreen from "../screens/Task2/LoggedIn/UserTableScreen";
@@ -13,8 +14,6 @@ const Stack = createStackNavigator();
 
 const RootNavigator = () => {
   const [token, setToken] = useState(null);
-  const menuArray = ["Logout"];
-
   return (
     <AuthContext.Provider value={{ token, setToken }}>
       <NavigationContainer>
@@ -37,8 +36,8 @@ const RootNavigator = () => {
           <Stack.Screen
             name="Login"
             component={LoginScreen}
-            options={{ headerTintColor: "#fff" }}
             options={({ navigation }) => ({
+              headerTintColor: "#fff",
               headerLeft: () => (
                 <NavHeader
                   icon={"arrow"}
@@ -51,8 +50,8 @@ const RootNavigator = () => {
           <Stack.Screen
             name="UserTable"
             component={UserTableScreen}
-            options={{ headerTintColor: "#fff" }}
             options={({ navigation }) => ({
+              headerTintColor: "#fff",
               headerLeft: () => (
                 <NavHeader
                   icon={"arrow"}
@@ -62,24 +61,32 @@ const RootNavigator = () => {
                   }
                 />
               ),
-              headerRight: () => (
-                <ModalDropdown
-                  options={menuArray}
-                  dropdownStyle={{
-                    height: 40 * menuArray.length,
-                    alignItems: "center",
-                  }}
-                  defaultValue={"Menu"}
-                  animated={true}
-                  dropdownTextStyle={{ fontSize: 20, color: "black" }}
-                  textStyle={{ fontSize: 20, marginRight: 5, color: "black" }}
-                  customButton="⋮"
-                  onSelect={() => {
-                    setToken(null);
-                    navigation.navigate("Login");
-                  }}
-                />
-              ),
+              headerRight: () => {
+                const onPress = () => {
+                  setToken(null);
+                  navigation.navigate("Login");
+                };
+                if (Platform.OS == "web") {
+                  return (
+                    <Button
+                      label="LOGOUT"
+                      styleProps={{ marginRight: 15 }}
+                      onPress={onPress}
+                    />
+                  );
+                }
+                return (
+                  <View style={styles.container}>
+                    <Dropdown
+                      underlineColor={"white"}
+                      parentDDContainerStyle={{ width: 70 }}
+                      label=""
+                      data={[{ label: "logout" }]}
+                      onChange={onPress}
+                    />
+                  </View>
+                );
+              },
             })}
           />
         </Stack.Navigator>
@@ -98,7 +105,9 @@ const NavHeader = ({ onPress, icon, alignLeft = null }) => {
       onPress={onPress}
     >
       <MaterialCommunityIcons
-        name={`${icon}${alignLeft === null ? "" : alignLeft == true ? "-left" : "-right"}`}
+        name={`${icon}${
+          alignLeft === null ? "" : alignLeft == true ? "-left" : "-right"
+        }`}
         size={30}
         color="black"
       />
@@ -106,11 +115,15 @@ const NavHeader = ({ onPress, icon, alignLeft = null }) => {
   );
 };
 
-
 const styles = StyleSheet.create({
   buttonContainer: {
     alignItems: "center",
     marginBottom: 5,
+  },
+  container: {
+    marginRight: 20,
+    marginTop: -10,
+    flex: 1,
   },
 });
 
